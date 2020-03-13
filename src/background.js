@@ -1,7 +1,7 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
-  app, protocol, BrowserWindow,
+  app, protocol, BrowserWindow, Menu,
 } from 'electron';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
@@ -18,27 +18,27 @@ let win;
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }]);
 
-// function createMenu() {
-//   // darwin表示macOS，针对macOS的设置
-//   if (process.platform === 'darwin') {
-//     const template = [
-//       {
-//         label: 'App Demo',
-//         submenu: [
-//           {
-//             role: 'about',
-//           },
-//           {
-//             role: 'quit',
-//           }],
-//       }];
-//     const menu = Menu.buildFromTemplate(template);
-//     Menu.setApplicationMenu(menu);
-//   } else {
-//     // windows及linux系统
-//     Menu.setApplicationMenu(null);
-//   }
-// }
+function createMenu() {
+  // darwin表示macOS，针对macOS的设置
+  if (process.platform === 'darwin') {
+    const template = [
+      {
+        label: 'App Demo',
+        submenu: [
+          {
+            role: 'about',
+          },
+          {
+            role: 'quit',
+          }],
+      }];
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+  } else {
+    // windows及linux系统
+    Menu.setApplicationMenu(null);
+  }
+}
 
 function createWindow() {
   // Create the browser window.
@@ -64,9 +64,11 @@ function createWindow() {
     win = null;
   });
 
-  win.maximize();
-
-  // createMenu();
+  if (isDevelopment) {
+    win.maximize();
+  } else {
+    createMenu();
+  }
 }
 
 // Quit when all windows are closed.
@@ -90,7 +92,7 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
-  if (isDevelopment && !process.env.IS_TEST) {
+  if (process.platform !== 'win32' && isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
     // Devtools extensions are broken in Electron 6.0.0 and greater
     // See https://github.com/nklayman/vue-cli-plugin-electron-builder/issues/378 for more info
