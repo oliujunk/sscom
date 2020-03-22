@@ -109,13 +109,13 @@
         <el-checkbox v-model="sendOption.hex">HEX发送</el-checkbox>
       </div>
       <div>
-        <el-checkbox v-model="sendOption.autoSend">定时发送</el-checkbox>
+        <el-checkbox v-model="sendOption.autoSend" :disabled="!linkInfo.linked">定时发送</el-checkbox>
         <el-input-number
           v-model="sendOption.interval"
           size="mini"
           controls-position="right"
-          :disabled="!sendOption.autoSend"
           style="margin-left: 12px;"
+          :disabled="sendOption.autoSend"
         ></el-input-number>
         <span style="font-size: 12px;">ms/次</span>
       </div>
@@ -126,7 +126,7 @@
         :disabled="!linkInfo.linked"
       >发送</el-button>
     </div>
-    <!-- 接收窗口 -->
+    <!-- 发送区域 -->
     <div class="send-area">
       <el-input
         type="textarea"
@@ -185,12 +185,13 @@ export default {
         message: '',
       },
       recvWindow: null,
+      job: null,
     };
   },
 
   methods: {
     buf2hex(buffer) {
-      return buffer.toString('hex').replace(/\s/g, '').replace(/(.{2})/g, '$1 ');
+      return buffer.toString('hex').toUpperCase().replace(/\s/g, '').replace(/(.{2})/g, '$1 ');
     },
 
     showRecv(data) {
@@ -415,6 +416,37 @@ export default {
   mounted() {
     this.localAddress = this.getLocalAddress();
     this.recvWindow = document.getElementById('recv-window');
+  },
+
+  computed: {
+    autoSend() {
+      return this.sendOption.autoSend;
+    },
+  },
+
+  watch: {
+    autoSend() {
+      if (this.autoSend) {
+        let task;
+        switch (this.channel.name) {
+          case 'TCPClient':
+          case 'TCPServer':
+            task = () => this.socket.write(this.preSend());
+            break;
+          case 'UDPClient':
+            task = () => this.socket.send(this.preSend());
+            break;
+          case 'UDPServer':
+            task = () => this.server.send(this.preSend(), this.remote.port, this.remote.host);
+            break;
+          default:
+            break;
+        }
+        this.job = setInterval(task, this.sendOption.interval);
+      } else {
+        clearInterval(this.job);
+      }
+    },
   },
 };
 </script>

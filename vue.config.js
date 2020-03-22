@@ -18,6 +18,7 @@ module.exports = {
         appId: '413041277@qq.com',
         productName: 'sscom',
         copyright: 'Copyright © 2020 oliujunk',
+        icon: './src/assets/logo.png',
         win: {
           target: 'nsis',
         },

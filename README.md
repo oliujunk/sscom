@@ -1,24 +1,12 @@
 # sscom
 
-## Project setup
-```
-yarn install
-```
+![版本](https://img.shields.io/badge/version-0.1.1-blue.svg)
+![语言](https://img.shields.io/badge/language-vue-brightgreen.svg)
+![框架](https://img.shields.io/badge/electron-6.0.0-blue.svg)
+![开源协议](https://img.shields.io/badge/license-MIT-blue.svg)
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+![logo](https://github.com/oliujunk/sscom/raw/master/src/assets/logo.png)
 
-### Compiles and minifies for production
-```
-yarn build
-```
+---
 
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+跨平台的TCP/UDP 串口调试工具
