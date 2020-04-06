@@ -14,6 +14,7 @@ module.exports = {
   },
   pluginOptions: {
     electronBuilder: {
+      externals: ['serialport'],
       builderOptions: {
         appId: '413041277@qq.com',
         productName: 'sscom',

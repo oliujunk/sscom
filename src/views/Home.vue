@@ -30,7 +30,7 @@
           placeholder="请选择端口号"
           size="mini"
           value-key="name"
-          style="margin-left: 12px;"
+          style="margin-left: 12px; width: 280px;"
           :disabled="linkInfo.linked || linkInfo.listened"
         >
           <el-option
@@ -41,90 +41,165 @@
           ></el-option>
         </el-select>
       </div>
-      <div>
-        <span>远程</span>
-        <el-input
-          v-model="remote.host"
-          placeholder="请输入IP或域名"
+      <div v-if="channel.type === 'serial'">
+        <div>
+          <el-button
+            :type="linkInfo.linked ? 'success' : 'primary'"
+            size="mini"
+            @click="onClickOpen"
+          >{{ linkInfo.linked ? '关闭串口' : '打开串口' }}</el-button>
+          <span style="font-size: 12px; margin-left: 10px;">波特率</span>
+          <el-select
+            v-model="serialportOption.baudRate"
+            placeholder="波特率"
+            filterable
+            size="mini"
+            style="width: 100px;"
+            :disabled="linkInfo.linked"
+          >
+            <el-option
+              v-for="(item, index) in baudRate"
+              :key="index"
+              :value="item"
+            ></el-option>
+          </el-select>
+          <span style="font-size: 12px; margin-left: 10px;">校验</span>
+          <el-select
+            v-model="serialportOption.parity"
+            placeholder="校验"
+            filterable
+            size="mini"
+            style="width: 80px;"
+            :disabled="linkInfo.linked"
+          >
+            <el-option
+              v-for="(item, index) in parity"
+              :key="index"
+              :value="item"
+            ></el-option>
+          </el-select>
+        </div>
+        <div>
+          <span style="font-size: 12px; margin-left: 90px;">数据位</span>
+          <el-select
+            v-model="serialportOption.dataBits"
+            placeholder="数据位"
+            filterable
+            size="mini"
+            style="width: 80px;"
+            :disabled="linkInfo.linked"
+          >
+            <el-option
+              v-for="(item, index) in dataBits"
+              :key="index"
+              :value="item"
+            ></el-option>
+          </el-select>
+          <span style="font-size: 12px; margin-left: 18px;">停止位</span>
+          <el-select
+            v-model="serialportOption.stopBits"
+            placeholder="停止位"
+            filterable
+            size="mini"
+            style="width: 80px;"
+            :disabled="linkInfo.linked"
+          >
+            <el-option
+              v-for="(item, index) in stopBits"
+              :key="index"
+              :value="item"
+            ></el-option>
+          </el-select>
+        </div>
+      </div>
+      <div v-else>
+        <div>
+          <span>远程</span>
+          <el-input
+            v-model="remote.host"
+            placeholder="请输入IP或域名"
+            size="mini"
+            style="width: 130px; margin-left: 12px;"
+            :disabled="channel.type === 'server' || linkInfo.linked || linkInfo.listened"
+          ></el-input>
+          <el-input-number
+            v-model="remote.port"
+            placeholder="请输入端口"
+            size="mini"
+            controls-position="right"
+            :min="1"
+            :max="65535"
+            style="width: 110px;"
+            :disabled="channel.type === 'server' || linkInfo.linked || linkInfo.listened"
+          ></el-input-number>
+          <el-button
+            type="primary"
+            size="mini"
+            @click="onClickConnect"
+            :disabled="channel.type === 'server'"
+          >{{ !linkInfo.listened && linkInfo.linked ? "断开" : "连接" }}</el-button>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <span>本地</span>
+          <el-select
+            v-model="local.host"
+            placeholder="请选择IP"
+            size="mini"
+            style="width: 130px; margin-left: 12px;"
+            :disabled="channel.type === 'client' || linkInfo.linked || linkInfo.listened"
+          >
+            <el-option
+              v-for="item in localAddress"
+              :key="item"
+              :label="item"
+              :value="item"
+            ></el-option>
+          </el-select>
+          <el-input-number
+            v-model="local.port"
+            placeholder="请输入端口"
+            size="mini"
+            controls-position="right"
+            :min="1"
+            :max="65535"
+            style="width: 110px;"
+            :disabled="channel.type === 'client' || linkInfo.linked || linkInfo.listened"
+          ></el-input-number>
+          <el-button
+            type="primary"
+            size="mini"
+            :disabled="channel.type === 'client'"
+            @click="onClickListen"
+          >{{ linkInfo.listened ? "断开" : "监听" }}</el-button>
+        </div>
+      </div>
+      <div class="function-area-bottom">
+        <el-button
+          type="danger"
           size="mini"
-          style="width: 130px; margin-left: 12px;"
-          :disabled="channel.type === 'server' || linkInfo.linked || linkInfo.listened"
-        ></el-input>
-        <el-input-number
-          v-model="remote.port"
-          placeholder="请输入端口"
-          size="mini"
-          controls-position="right"
-          :min="1"
-          :max="65535"
-          style="width: 110px;"
-          :disabled="channel.type === 'server' || linkInfo.linked || linkInfo.listened"
-        ></el-input-number>
+          @click="onClickSendClear"
+        >清除发送窗口</el-button>
+        <div>
+          <el-checkbox v-model="sendOption.hex">HEX发送</el-checkbox>
+        </div>
+        <div>
+          <el-checkbox v-model="sendOption.autoSend" :disabled="!linkInfo.linked">定时发送</el-checkbox>
+          <el-input-number
+            v-model="sendOption.interval"
+            size="mini"
+            controls-position="right"
+            style="margin-left: 12px;"
+            :disabled="sendOption.autoSend"
+          ></el-input-number>
+          <span style="font-size: 12px;">ms/次</span>
+        </div>
         <el-button
           type="primary"
-          size="mini"
-          @click="onClickConnect"
-          :disabled="channel.type === 'server'"
-        >{{ !linkInfo.listened && linkInfo.linked ? "断开" : "连接" }}</el-button>
+          class="send-button"
+          @click="onClickSend"
+          :disabled="!linkInfo.linked"
+        >发送</el-button>
       </div>
-      <div style="margin-bottom: 10px;">
-        <span>本地</span>
-        <el-select
-          v-model="local.host"
-          placeholder="请选择IP"
-          size="mini"
-          style="width: 130px; margin-left: 12px;"
-          :disabled="channel.type === 'client' || linkInfo.linked || linkInfo.listened"
-        >
-          <el-option
-            v-for="item in localAddress"
-            :key="item"
-            :label="item"
-            :value="item"
-          ></el-option>
-        </el-select>
-        <el-input-number
-          v-model="local.port"
-          placeholder="请输入端口"
-          size="mini"
-          controls-position="right"
-          :min="1"
-          :max="65535"
-          style="width: 110px;"
-          :disabled="channel.type === 'client' || linkInfo.linked || linkInfo.listened"
-        ></el-input-number>
-        <el-button
-          type="primary"
-          size="mini"
-          :disabled="channel.type === 'client'"
-          @click="onClickListen"
-        >{{ linkInfo.listened ? "断开" : "监听" }}</el-button>
-      </div>
-      <el-button
-        type="danger"
-        size="mini"
-        @click="onClickSendClear"
-      >清除发送窗口</el-button>
-      <div>
-        <el-checkbox v-model="sendOption.hex">HEX发送</el-checkbox>
-      </div>
-      <div>
-        <el-checkbox v-model="sendOption.autoSend" :disabled="!linkInfo.linked">定时发送</el-checkbox>
-        <el-input-number
-          v-model="sendOption.interval"
-          size="mini"
-          controls-position="right"
-          style="margin-left: 12px;"
-          :disabled="sendOption.autoSend"
-        ></el-input-number>
-        <span style="font-size: 12px;">ms/次</span>
-      </div>
-      <el-button
-        type="primary"
-        class="send-button"
-        @click="onClickSend"
-        :disabled="!linkInfo.linked"
-      >发送</el-button>
     </div>
     <!-- 发送区域 -->
     <div class="send-area">
@@ -156,16 +231,18 @@ const os = require('os');
 const net = require('net');
 const dgram = require('dgram');
 const moment = require('moment');
+const SerialPort = require('serialport');
+const InterByteTimeout = require('@serialport/parser-inter-byte-timeout');
 
 export default {
   name: 'home',
   data() {
     return {
       recvOption: {
-        text: '', hex: false, timestamp: true, subpackage: true, length: 0,
+        text: '', hex: true, timestamp: true, subpackage: true, length: 0,
       },
       sendOption: {
-        text: '', hex: false, length: 0, autoSend: false, interval: 1000,
+        text: '', hex: true, length: 0, autoSend: false, interval: 1000,
       },
       channel: { name: 'TCPClient', type: 'client' },
       channelList: [
@@ -186,6 +263,19 @@ export default {
       },
       recvWindow: null,
       job: null,
+      serialportOption: {
+        baudRate: 9600,
+        dataBits: 8,
+        stopBits: 1,
+        parity: 'none',
+      },
+      port: null,
+      baudRate: [
+        110, 300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200, 128000,
+      ],
+      dataBits: [8, 7, 6, 5],
+      stopBits: [1, 2],
+      parity: ['none', 'even', 'mark', 'odd', 'space'],
     };
   },
 
@@ -396,19 +486,67 @@ export default {
     },
 
     onClickSend() {
-      switch (this.channel.name) {
-        case 'TCPClient':
-        case 'TCPServer':
-          this.socket.write(this.preSend());
+      switch (this.channel.type) {
+        case 'client':
+          if (this.channel.name === 'TCPClient') {
+            this.socket.write(this.preSend());
+          } else if (this.channel.name === 'UDPClient') {
+            this.socket.send(this.preSend());
+          }
           break;
-        case 'UDPClient':
-          this.socket.send(this.preSend());
+        case 'server':
+          if (this.channel.name === 'TCPServer') {
+            this.socket.write(this.preSend());
+          } else if (this.channel.name === 'UDPServer') {
+            this.server.send(this.preSend(), this.remote.port, this.remote.host);
+          }
           break;
-        case 'UDPServer':
-          this.server.send(this.preSend(), this.remote.port, this.remote.host);
+        case 'serial':
+          this.port.write(this.preSend());
           break;
         default:
           break;
+      }
+    },
+
+    updateSerialport() {
+      SerialPort.list().then(
+        (ports) => {
+          ports.forEach((port) => {
+            this.channelList.unshift({ name: port.path, type: 'serial' });
+          });
+          this.channel = this.channelList[0];
+        },
+      );
+    },
+
+    onClickOpen() {
+      if (this.linkInfo.linked) {
+        this.port.close((err) => {
+          if (err) {
+            this.$message.error(`${this.channel.name}关闭失败`);
+          } else {
+            this.linkInfo.linked = false;
+          }
+        });
+        this.port = null;
+      } else {
+        const port = new SerialPort(this.channel.name, {
+          autoOpen: false,
+          ...this.serialportOption,
+        });
+        port.open((err) => {
+          if (err) {
+            this.$message.error(`${this.channel.name}打开失败`);
+          } else {
+            this.linkInfo.linked = true;
+          }
+        });
+        const parser = port.pipe(new InterByteTimeout({ interval: 30 }));
+        parser.on('data', (data) => {
+          this.showRecv(data);
+        });
+        this.port = port;
       }
     },
   },
@@ -416,11 +554,15 @@ export default {
   mounted() {
     this.localAddress = this.getLocalAddress();
     this.recvWindow = document.getElementById('recv-window');
+    this.updateSerialport();
   },
 
   computed: {
     autoSend() {
       return this.sendOption.autoSend;
+    },
+    linked() {
+      return this.linkInfo.linked;
     },
   },
 
@@ -428,22 +570,35 @@ export default {
     autoSend() {
       if (this.autoSend) {
         let task;
-        switch (this.channel.name) {
-          case 'TCPClient':
-          case 'TCPServer':
-            task = () => this.socket.write(this.preSend());
+        switch (this.channel.type) {
+          case 'client':
+            if (this.channel.name === 'TCPClient') {
+              task = () => this.socket.write(this.preSend());
+            } else if (this.channel.name === 'UDPClient') {
+              task = () => this.socket.send(this.preSend());
+            }
             break;
-          case 'UDPClient':
-            task = () => this.socket.send(this.preSend());
+          case 'server':
+            if (this.channel.name === 'TCPServer') {
+              task = () => this.socket.write(this.preSend());
+            } else if (this.channel.name === 'UDPServer') {
+              task = () => this.server.send(this.preSend(), this.remote.port, this.remote.host);
+            }
             break;
-          case 'UDPServer':
-            task = () => this.server.send(this.preSend(), this.remote.port, this.remote.host);
+          case 'serial':
+            task = () => this.port.write(this.preSend());
             break;
           default:
             break;
         }
         this.job = setInterval(task, this.sendOption.interval);
       } else {
+        clearInterval(this.job);
+      }
+    },
+    linked() {
+      if (!this.linked && this.job) {
+        this.sendOption.autoSend = false;
         clearInterval(this.job);
       }
     },
@@ -483,6 +638,13 @@ export default {
   left: 0;
   bottom: 18px;
   padding: 5px;
+}
+
+.function-area-bottom {
+  position: absolute;
+  bottom: 10px;
+  right: 0;
+  left: 5px;
 }
 
 .send-button {
