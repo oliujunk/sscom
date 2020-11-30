@@ -42,7 +42,7 @@
         </el-select>
       </div>
       <div v-if="channel.type === 'serial'">
-        <div>
+        <div style="margin-top: 2px;">
           <el-button
             :type="linkInfo.linked ? 'success' : 'primary'"
             size="mini"
@@ -642,7 +642,7 @@ export default {
 
 .function-area-bottom {
   position: absolute;
-  bottom: 10px;
+  bottom: 8px;
   right: 0;
   left: 5px;
 }
